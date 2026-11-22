@@ -1,0 +1,27 @@
+title: vCenter - Local SSO Account Matching Armory Castle Naming (sps-*@vsphere.local)
+id: 31119e69-2907-4cca-95f5-d3d49297a488
+status: experimental
+description: |
+  Detects log entries that mention a vsphere.local account starting with "sps-". Mandiant observed Armory
+  Castle creating a local vCenter admin with this pattern. The BONESAW tool also creates SSO admins with
+  operator-chosen names, so review EVERY new vsphere.local principal, not only this pattern.
+  Source: vCenter SSO / audit logs forwarded via syslog (custom log source).
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.persistence
+  - attack.t1136.001
+logsource:
+  product: vmware
+  service: vcenter-sso
+detection:
+  keywords_domain:
+    - '@vsphere.local'
+  keywords_prefix:
+    - 'sps-'
+  condition: keywords_domain and keywords_prefix
+falsepositives:
+  - Legitimate service accounts that happen to start with "sps-" (verify and allow-list by exact name)
+level: high

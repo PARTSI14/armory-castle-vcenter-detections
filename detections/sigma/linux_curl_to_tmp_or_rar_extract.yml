@@ -1,0 +1,35 @@
+title: Linux Appliance - curl Download to /tmp or Password-Protected RAR Extraction
+id: 9248900e-6a2d-4249-afe2-b1a8aaf5d38c
+status: experimental
+description: |
+  Detects curl writing a file into /tmp, or rar/unrar extracting a password-protected archive. Armory Castle
+  downloaded a RAR utility and the BONESAW exploit with curl into /tmp and extracted them with "rar x -p".
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.command-and-control
+  - attack.t1105
+  - attack.stealth
+  - attack.t1140
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_curl:
+    Image|endswith: '/curl'
+    CommandLine|contains:
+      - ' -o /tmp/'
+      - ' --output /tmp/'
+  selection_rar:
+    Image|endswith:
+      - '/rar'
+      - '/unrar'
+    CommandLine|contains|all:
+      - ' x '
+      - ' -p'
+  condition: 1 of selection_*
+falsepositives:
+  - Administrators downloading patches into /tmp (correlate with change tickets)
+level: medium

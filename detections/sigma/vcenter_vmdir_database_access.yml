@@ -1,0 +1,26 @@
+title: vCenter - VMware Directory Database (data.mdb) Accessed by a Process Other Than vmdird
+id: d18f4244-2d12-4109-9a86-2dacfebdec1f
+status: experimental
+description: |
+  Detects a command line that references the vmdir LMDB database. BONESAW exfiltrated
+  /storage/db/vmware-vmdir/data.mdb, which holds SSO directory secrets. For stronger coverage also add an
+  auditd watch on the file (see README).
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.credential-access
+  - attack.t1552.001
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection:
+    CommandLine|contains: '/storage/db/vmware-vmdir/data.mdb'
+  filter_vmdird:
+    Image|endswith: '/vmdird'
+  condition: selection and not filter_vmdird
+falsepositives:
+  - VMware support or backup tooling (should be documented and rare)
+level: critical

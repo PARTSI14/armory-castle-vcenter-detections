@@ -1,0 +1,27 @@
+title: Linux Appliance - Base64 Decoded Into /tmp
+id: 17ef30da-1525-42b7-9033-1c6c279b0592
+status: experimental
+description: |
+  Detects base64 decoding whose output goes to /tmp. Armory Castle used "echo ... | base64 -d > /tmp/gdb_file"
+  to hide commands. Mandiant lists base64-encoded shell execution as a detection opportunity.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.stealth
+  - attack.t1140
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_decode:
+    CommandLine|contains:
+      - 'base64 -d'
+      - 'base64 --decode'
+  selection_tmp:
+    CommandLine|contains: '/tmp/'
+  condition: selection_decode and selection_tmp
+falsepositives:
+  - Installer scripts that unpack embedded payloads (rare on appliances; baseline first)
+level: medium

@@ -1,0 +1,42 @@
+title: Linux Appliance - gdb Command File Execution or SUID Bit Set on a Shell-Capable Binary
+id: e8be771c-8912-4e63-a0e5-049dc6c6e617
+status: experimental
+description: |
+  Detects gdb run with a command file, or chmod setting the SUID bit on binaries that can spawn a shell.
+  Armory Castle base64-decoded a gdb command file containing "!chmod u+s /bin/env" to gain root on a
+  Linux appliance. Neither action is normal on a production appliance.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.privilege-escalation
+  - attack.t1548.001
+  - attack.execution
+  - attack.t1059.004
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_gdb:
+    Image|endswith: '/gdb'
+    CommandLine|contains:
+      - '--command='
+      - '--batch'
+  selection_suid_tool:
+    Image|endswith: '/chmod'
+    CommandLine|contains:
+      - 'u+s'
+      - '4755'
+      - '+s '
+  selection_suid_target:
+    CommandLine|contains:
+      - '/bin/env'
+      - '/bin/bash'
+      - '/bin/sh'
+      - '/usr/bin/find'
+      - '/usr/bin/python'
+  condition: selection_gdb or (selection_suid_tool and selection_suid_target)
+falsepositives:
+  - Developers debugging on non-production systems
+level: high

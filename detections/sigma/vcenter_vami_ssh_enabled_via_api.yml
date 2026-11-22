@@ -1,0 +1,26 @@
+title: vCenter - SSH Enabled Through the VAMI REST API
+id: 53b8a9ed-d731-476e-a5e5-4b3570da718b
+status: experimental
+description: |
+  Detects a PUT request to the vCenter Appliance Management (VAMI) endpoint that turns on SSH.
+  Armory Castle enabled SSH this way, logged in, stole the vCenter master key and PostgreSQL credentials,
+  then disabled SSH again. The same trick was seen in BRICKSTORM intrusions. Keep SSH off by default and
+  alert on every change. Source: vCenter reverse-proxy / VAMI access logs forwarded to the SIEM.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.lateral-movement
+  - attack.t1021.004
+logsource:
+  category: webserver
+  product: vmware
+detection:
+  selection:
+    cs-method: 'PUT'
+    cs-uri-stem|contains: '/rest/appliance/access/ssh'
+  condition: selection
+falsepositives:
+  - Planned maintenance by vSphere administrators (should match a change ticket)
+level: high

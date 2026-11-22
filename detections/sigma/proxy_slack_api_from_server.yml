@@ -1,0 +1,28 @@
+title: Network - Server Calling Slack API Used for C2 (conversations.history / external file upload)
+id: c22afe93-a0a8-4298-b37b-1c70d1027bcc
+status: experimental
+description: |
+  Detects requests to the Slack API endpoints LAZYBONES used for command-and-control. Servers and
+  appliances (vCenter, Linux appliances, remote-support boxes) should never talk to Slack. Scope this rule
+  to server subnets.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.command-and-control
+  - attack.t1102.002
+logsource:
+  category: proxy
+detection:
+  selection_host:
+    cs-host|endswith: 'slack.com'
+  selection_uri:
+    c-uri|contains:
+      - '/api/conversations.history'
+      - '/api/files.getUploadURLExternal'
+      - '/api/files.completeUploadExternal'
+  condition: selection_host and selection_uri
+falsepositives:
+  - Legitimate Slack bots or integrations running on servers (allow-list by source host)
+level: high

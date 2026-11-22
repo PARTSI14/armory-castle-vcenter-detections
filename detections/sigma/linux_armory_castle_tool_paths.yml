@@ -1,0 +1,30 @@
+title: Linux Appliance - Execution of Armory Castle Tool Paths (BONESAW, SAWSNAKE, BEARBONES, LAZYBONES)
+id: f09b2054-5c6a-4f90-8304-85bb02a8a8b9
+status: experimental
+description: |
+  IOC-based rule. Detects execution from file paths that Mandiant reported for this campaign:
+  /tmp/123 (BONESAW), /tmp/sss (SAWSNAKE), /tmp/dbr (BEARBONES) and /usr/bin/vmtoolscs (LAZYBONES, named to
+  look like VMware Tools). Paths are easy to change, so pair this with the behaviour rules.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.execution
+  - attack.t1059.004
+  - attack.stealth
+  - attack.t1036.005
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection:
+    Image:
+      - '/tmp/123'
+      - '/tmp/sss'
+      - '/tmp/dbr'
+      - '/usr/bin/vmtoolscs'
+  condition: selection
+falsepositives:
+  - None expected
+level: critical

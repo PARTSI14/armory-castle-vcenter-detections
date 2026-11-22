@@ -1,0 +1,356 @@
+{
+  "name": "Armory Castle vSphere campaign (Nov 2026)",
+  "versions": {
+    "attack": "20",
+    "navigator": "5.0.0",
+    "layer": "4.5"
+  },
+  "domain": "enterprise-attack",
+  "description": "Techniques observed in the ARMORY CASTLE (formerly UNC5221) intrusion chain BeyondTrust Remote Support -> Linux appliance -> vCenter (CVE-2026-123890) -> ESXi, as reported by Mandiant/GTIG on 19 Nov 2026. Mapping by Stelios Partsinevelos (Mandiant's post lists no ATT&CK IDs). Dark red = observed AND covered by a Sigma rule in this repository; light = observed, hunting only.",
+  "sorting": 0,
+  "layout": {
+    "layout": "side",
+    "showName": true,
+    "showID": true,
+    "showAggregateScores": false,
+    "countUnscored": false,
+    "expandedSubtechniques": "annotated"
+  },
+  "hideDisabled": false,
+  "techniques": [
+    {
+      "techniqueID": "T1587.001",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "Custom malware sets: SLIMSAVAGE, CAGEMATCH, BEARBONES, BONESAW, SAWSNAKE, LAZYBONES. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "resource-development"
+    },
+    {
+      "techniqueID": "T1587.004",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "BONESAW: Go exploit utility for the vCenter zero-day CVE-2026-123890 (build timestamp Jul 13, 2026). | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "resource-development"
+    },
+    {
+      "techniqueID": "T1584.008",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "Obfuscation infrastructure includes compromised third-party firewalls/routers exposing the BEARBONES banner. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "resource-development"
+    },
+    {
+      "techniqueID": "T1190",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "Initial access: zero-day CVE-2026-102764 in BeyondTrust Remote Support (fixed in BT26-05). | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "initial-access"
+    },
+    {
+      "techniqueID": "T1059.004",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "Commands run via /bin/sh -c through the SLIMSAVAGE web shell and SSH sessions. | Detection in this repo: linux_armory_castle_tool_paths.yml, linux_gdb_command_file_or_suid_set.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "execution"
+    },
+    {
+      "techniqueID": "T1505.003",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "JSP web shells SLIMSAVAGE (ActiveSer.jsp) and CAGEMATCH (u.jsp) on the Linux appliance. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "persistence"
+    },
+    {
+      "techniqueID": "T1543.002",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "LAZYBONES (/usr/bin/vmtoolscs) runs as a systemd service that restarts it every 50 minutes. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true
+    },
+    {
+      "techniqueID": "T1098.004",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "Attacker SSH public key added to ESXi root authorized_keys. | Detection in this repo: esxi_shell_ssh_key_or_vmfs_staging.yml",
+      "enabled": true,
+      "showSubtechniques": true
+    },
+    {
+      "techniqueID": "T1136.001",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "Local vCenter admin sps-<REDACTED>@vsphere.local created; BONESAW also creates an SSO admin and a machine account. | Detection in this repo: vcenter_sso_admin_account_sps_pattern.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "persistence"
+    },
+    {
+      "techniqueID": "T1556",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "BEARBONES: backdoored Dropbear with hardcoded password bypass and plaintext credential logging. | Detection in this repo: linux_ssh_server_started_from_tmp.yml",
+      "enabled": true,
+      "showSubtechniques": true
+    },
+    {
+      "techniqueID": "T1548.001",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "gdb command file decoded to \"!chmod u+s /bin/env\" to set SUID and gain root. | Detection in this repo: linux_gdb_command_file_or_suid_set.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "privilege-escalation"
+    },
+    {
+      "techniqueID": "T1078.003",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "Authenticated to ESXi as vpxuser, then SSH as root. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true
+    },
+    {
+      "techniqueID": "T1140",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "Base64-encoded commands decoded into /tmp/gdb_file. | Detection in this repo: linux_base64_decode_to_tmp.yml, linux_curl_to_tmp_or_rar_extract.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "stealth"
+    },
+    {
+      "techniqueID": "T1070.004",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "SAWSNAKE, its outputs and the hidden staging directory deleted with rm. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "stealth"
+    },
+    {
+      "techniqueID": "T1036.005",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "LAZYBONES named vmtoolscs to look like VMware Tools. | Detection in this repo: linux_armory_castle_tool_paths.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "stealth"
+    },
+    {
+      "techniqueID": "T1036",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "BEARBONES spoofs the banner SSH-2.0-pulsesecure_23345. | Detection in this repo: zeek_ssh_pulsesecure_banner.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "stealth"
+    },
+    {
+      "techniqueID": "T1564.001",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "Data staged in a hidden \".a\" directory on a VMFS datastore. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "stealth"
+    },
+    {
+      "techniqueID": "T1006",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "vmfs_browser.py read files directly from a guest Windows VMDK on VMFS. | Detection in this repo: esxi_shell_ssh_key_or_vmfs_staging.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "stealth"
+    },
+    {
+      "techniqueID": "T1212",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "CVE-2026-123890 (vmdir SRP-6a session key disclosure) exploited by BONESAW over TCP 2012 to gain SSO admin. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "credential-access"
+    },
+    {
+      "techniqueID": "T1552.004",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "STS SAML RSA signing key stolen by BONESAW; SSH private key /tmp/123.key used for ESXi access. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "credential-access"
+    },
+    {
+      "techniqueID": "T1552.001",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "vmdir data.mdb exfiltrated; vCenter master key and PostgreSQL password file taken over SSH. | Detection in this repo: vcenter_vmdir_database_access.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "credential-access"
+    },
+    {
+      "techniqueID": "T1606.002",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "Golden SAML: BONESAW and SAWSNAKE forge SAML 2.0 assertions, bypassing MFA. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "credential-access"
+    },
+    {
+      "techniqueID": "T1003.003",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "NTDS.dit, SYSTEM and SECURITY extracted from a guest domain controller disk. | Detection in this repo: esxi_shell_ssh_key_or_vmfs_staging.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "credential-access"
+    },
+    {
+      "techniqueID": "T1046",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "nmap -sS against VMware ports 9080, 5480, 2012, 443, 389. | Detection in this repo: linux_nmap_vmware_management_ports.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "discovery"
+    },
+    {
+      "techniqueID": "T1083",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "WinSCP used to enumerate the ESXi file system, disks and VMFS volumes. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "discovery"
+    },
+    {
+      "techniqueID": "T1210",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "vmdir service on vCenter exploited remotely (TCP 2012) from the compromised Linux appliance. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "lateral-movement"
+    },
+    {
+      "techniqueID": "T1021.004",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "SSH enabled on vCenter via VAMI, then SSH to vCenter and to ESXi as root. | Detection in this repo: vcenter_vami_ssh_enabled_via_api.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "lateral-movement"
+    },
+    {
+      "techniqueID": "T1074.001",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "Stolen files staged in /vmfs/volumes/<volume>/.a before transfer. | Detection in this repo: esxi_shell_ssh_key_or_vmfs_staging.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "collection"
+    },
+    {
+      "techniqueID": "T1560.001",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "Data archived as o.tar.gz; tools delivered as password-protected RAR. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "collection"
+    },
+    {
+      "techniqueID": "T1102.002",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "LAZYBONES uses Slack (conversations.history, external file upload APIs) for C2. | Detection in this repo: proxy_slack_api_from_server.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "command-and-control"
+    },
+    {
+      "techniqueID": "T1105",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "curl downloads of the RAR utility and BONESAW into /tmp. | Detection in this repo: linux_curl_to_tmp_or_rar_extract.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "command-and-control"
+    },
+    {
+      "techniqueID": "T1571",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "BEARBONES SSH listeners on TCP 53 and TCP 33992. | Detection in this repo: linux_ssh_server_started_from_tmp.yml",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "command-and-control"
+    },
+    {
+      "techniqueID": "T1573.001",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "LAZYBONES C2 encrypted with AES-256-CTR. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "command-and-control"
+    },
+    {
+      "techniqueID": "T1048.002",
+      "score": 1,
+      "color": "#ff9e80",
+      "comment": "Archives moved from ESXi to the appliance with scp, then pulled out via HTTP GET. | No rule in this repo yet (see hunting checklist).",
+      "enabled": true,
+      "showSubtechniques": true,
+      "tactic": "exfiltration"
+    }
+  ],
+  "gradient": {
+    "colors": [
+      "#ff9e80",
+      "#e53935"
+    ],
+    "minValue": 1,
+    "maxValue": 2
+  },
+  "legendItems": [
+    {
+      "label": "Observed + detection rule in this repo",
+      "color": "#e53935"
+    },
+    {
+      "label": "Observed (hunting checklist)",
+      "color": "#ff9e80"
+    }
+  ],
+  "metadata": [
+    {
+      "name": "Source",
+      "value": "Mandiant/GTIG, 19 Nov 2026"
+    },
+    {
+      "name": "Author",
+      "value": "Stelios Partsinevelos"
+    }
+  ],
+  "showTacticRowBackground": false,
+  "selectTechniquesAcrossTactics": true,
+  "selectSubtechniquesWithParent": false,
+  "selectVisibleTechniques": false
+}

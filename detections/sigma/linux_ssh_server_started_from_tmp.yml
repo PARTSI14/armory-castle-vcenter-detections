@@ -1,0 +1,33 @@
+title: Linux Appliance - SSH Server Binary Started From /tmp
+id: 2c933924-5437-4261-971f-02b66d850ce1
+status: experimental
+description: |
+  Detects a Dropbear-style SSH server (-R generate host keys, -p port) launched from /tmp. BEARBONES, a
+  backdoored Dropbear, ran as "/tmp/dbr -R -p 53" and "-p 33992", logged plaintext passwords and accepted a
+  hardcoded master password.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.command-and-control
+  - attack.t1571
+  - attack.persistence
+  - attack.t1556
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_path:
+    Image|startswith:
+      - '/tmp/'
+      - '/var/tmp/'
+      - '/dev/shm/'
+  selection_args:
+    CommandLine|contains|all:
+      - ' -R'
+      - ' -p '
+  condition: selection_path and selection_args
+falsepositives:
+  - None expected on appliances
+level: critical

@@ -1,0 +1,28 @@
+title: Linux Appliance - nmap Scan of VMware Management Ports
+id: 8f235785-7fe0-4798-a981-41c033847e90
+status: experimental
+description: |
+  Detects nmap scanning VMware-specific ports from a server. Armory Castle scanned ports such as 2012
+  (vmdir), 5480 (VAMI), 9080, 443 and 389 from a compromised Linux appliance before attacking vCenter.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.discovery
+  - attack.t1046
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_tool:
+    Image|endswith: '/nmap'
+  selection_ports:
+    CommandLine|contains:
+      - '2012'
+      - '5480'
+      - '9080'
+  condition: selection_tool and selection_ports
+falsepositives:
+  - Authorised vulnerability scanning from known scanner hosts (filter by host)
+level: high

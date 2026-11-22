@@ -1,0 +1,23 @@
+title: Network - SSH Server Banner Spoofing Pulse Secure (BEARBONES)
+id: 2b389642-a1ce-49dd-b167-647494d3963e
+status: experimental
+description: |
+  Detects the SSH banner SSH-2.0-pulsesecure_23345, set by the BEARBONES backdoor. Mandiant notes that
+  part of the actor's obfuscation network (compromised firewalls/routers) exposes this banner on high ports.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.stealth
+  - attack.t1036
+logsource:
+  product: zeek
+  service: ssh
+detection:
+  selection:
+    server|contains: 'pulsesecure_23345'
+  condition: selection
+falsepositives:
+  - None expected
+level: high

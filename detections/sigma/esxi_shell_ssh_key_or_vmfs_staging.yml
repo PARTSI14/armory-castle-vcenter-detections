@@ -1,0 +1,37 @@
+title: ESXi - SSH Key Added, Hidden VMFS Staging or VMFS Browser Tool
+id: 306a4c8f-755b-4e5a-a79d-39c0b69be56e
+status: experimental
+description: |
+  Detects ESXi shell activity seen in this campaign: writing to root authorized_keys, staging data in a
+  hidden directory on a VMFS datastore, and the vmfs_browser.py tool used to pull NTDS.dit, SYSTEM and
+  SECURITY from a Windows guest disk. Source: ESXi /var/log/shell.log forwarded via syslog.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.persistence
+  - attack.t1098.004
+  - attack.collection
+  - attack.t1074.001
+  - attack.stealth
+  - attack.t1006
+  - attack.credential-access
+  - attack.t1003.003
+logsource:
+  product: vmware
+  service: esxi-shell
+detection:
+  keywords_ssh_key:
+    - 'authorized_keys'
+  keywords_vmfs_tool:
+    - 'vmfs_browser'
+    - 'vmfs-pydist'
+  keywords_hidden_dir:
+    - '/vmfs/volumes/'
+  keywords_hidden_dir_name:
+    - '/.a'
+  condition: keywords_ssh_key or keywords_vmfs_tool or (keywords_hidden_dir and keywords_hidden_dir_name)
+falsepositives:
+  - Administrators deploying SSH keys for automation (must be documented)
+level: high
