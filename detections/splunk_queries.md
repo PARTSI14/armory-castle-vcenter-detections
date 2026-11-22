@@ -51,6 +51,14 @@ Source: `sigma/linux_nmap_vmware_management_ports.yml`
 Image="*/nmap" (CommandLine IN ("*2012*", "*5480*", "*9080*"))
 ```
 
+## Linux Appliance - scp Transfer To or From an ESXi VMFS Datastore
+
+Source: `sigma/linux_scp_to_or_from_vmfs_datastore.yml`
+
+```spl
+Image="*/scp" CommandLine="*/vmfs/volumes/*"
+```
+
 ## Linux Appliance - SSH Server Binary Started From /tmp
 
 Source: `sigma/linux_ssh_server_started_from_tmp.yml`

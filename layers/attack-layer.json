@@ -252,7 +252,7 @@
       "techniqueID": "T1021.004",
       "score": 2,
       "color": "#e53935",
-      "comment": "SSH enabled on vCenter via VAMI, then SSH to vCenter and to ESXi as root. | Detection in this repo: vcenter_vami_ssh_enabled_via_api.yml",
+      "comment": "SSH enabled on vCenter via VAMI, then SSH to vCenter and to ESXi as root. | Detection in this repo: vcenter_vami_ssh_enabled_via_api.yml, linux_scp_to_or_from_vmfs_datastore.yml",
       "enabled": true,
       "showSubtechniques": true,
       "tactic": "lateral-movement"
@@ -313,9 +313,9 @@
     },
     {
       "techniqueID": "T1048.002",
-      "score": 1,
-      "color": "#ff9e80",
-      "comment": "Archives moved from ESXi to the appliance with scp, then pulled out via HTTP GET. | No rule in this repo yet (see hunting checklist).",
+      "score": 2,
+      "color": "#e53935",
+      "comment": "Archives moved from ESXi to the appliance with scp, then pulled out via HTTP GET. | Detection in this repo: linux_scp_to_or_from_vmfs_datastore.yml",
       "enabled": true,
       "showSubtechniques": true,
       "tactic": "exfiltration"

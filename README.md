@@ -2,7 +2,7 @@
 
 **Case study: suspected PRC-nexus espionage campaign exploiting VMware vCenter CVE-2026-123890 (disclosed 19 November 2026)**
 
-Detection engineering for an intrusion that moved through **four systems without EDR**: BeyondTrust Remote Support → Linux appliance → vCenter → ESXi. This repo includes **12 Sigma rules** (with Splunk SPL), a **MITRE ATT&CK v20.1** layer that separates *observed* from *detected* techniques, and a **hunting & hardening checklist**.
+Detection engineering for an intrusion that moved through **four systems without EDR**: BeyondTrust Remote Support → Linux appliance → vCenter → ESXi. This repo includes **13 Sigma rules** (with Splunk SPL), a **MITRE ATT&CK v20.1** layer that separates *observed* from *detected* techniques, and a **hunting & hardening checklist**.
 
 ![Attack chain and detection points](vcenter-attack-chain.png)
 
@@ -33,10 +33,10 @@ The key lesson for a SOC: **vCenter, ESXi and appliances have no EDR.** If their
 
 | Path | What it is |
 |---|---|
-| [`detections/sigma/`](detections/sigma) | 12 Sigma rules across Linux process creation, vCenter/VAMI web logs, vCenter SSO logs, ESXi shell logs, proxy and Zeek |
+| [`detections/sigma/`](detections/sigma) | 13 Sigma rules across Linux process creation, vCenter/VAMI web logs, vCenter SSO logs, ESXi shell logs, proxy and Zeek |
 | [`detections/splunk_queries.md`](detections/splunk_queries.md) | The same rules converted to Splunk SPL with pySigma |
 | [`hunting/hunting-and-hardening.md`](hunting/hunting-and-hardening.md) | First-24h actions, hunting checklist per system, response order for Golden SAML, hardening table |
-| [`layers/attack-layer.json`](layers/attack-layer.json) | ATT&CK Navigator layer: 34 techniques, 17 covered by rules in this repo |
+| [`layers/attack-layer.json`](layers/attack-layer.json) | ATT&CK Navigator layer: 34 techniques, 18 covered by rules in this repo |
 | `vcenter-attack-chain.png` | Attack chain with the detection points per stage |
 
 ## Detections
@@ -55,6 +55,7 @@ The key lesson for a SOC: **vCenter, ESXi and appliances have no EDR.** If their
 | 10 | ESXi: SSH key added, hidden VMFS staging, vmfs_browser | ESXi `shell.log` | T1098.004, T1074.001, T1006, T1003.003 | high |
 | 11 | Server calling Slack API endpoints used for C2 | Proxy | T1102.002 | high |
 | 12 | SSH banner spoofing Pulse Secure (`pulsesecure_23345`) | Zeek `ssh.log` | T1036 | high |
+| 13 | scp to or from an ESXi VMFS datastore (data pulled out of ESXi) | Linux process creation | T1048.002, T1021.004 | high |
 
 **Design choice:** most rules detect **behaviour** (SSH enablement, SUID, `/tmp` execution, vmdir access) rather than file hashes. Mandiant published no hashes, and paths and names are cheap for an actor to change. Rule 8 is the only pure IOC rule.
 

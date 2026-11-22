@@ -1,0 +1,29 @@
+title: Linux Appliance - scp Transfer To or From an ESXi VMFS Datastore
+id: fa33bc87-fa80-4a89-9511-db4c9b3bf37d
+status: experimental
+description: |
+  Detects an scp command on a Linux server that references an ESXi datastore path (/vmfs/volumes/).
+  Armory Castle staged stolen files (including NTDS.dit from a guest DC disk) in a hidden ".a" folder on
+  VMFS and pulled them to a Linux appliance with scp using a stolen SSH key, before downloading the
+  archive over HTTP. Copying datastore files to an appliance is not normal administration.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere
+author: Stelios Partsinevelos
+date: 2026-11-22
+tags:
+  - attack.exfiltration
+  - attack.t1048.002
+  - attack.lateral-movement
+  - attack.t1021.004
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_tool:
+    Image|endswith: '/scp'
+  selection_path:
+    CommandLine|contains: '/vmfs/volumes/'
+  condition: selection_tool and selection_path
+falsepositives:
+  - Backup or migration jobs that copy VM files with scp (document the source host and account)
+level: high
