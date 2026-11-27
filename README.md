@@ -10,22 +10,37 @@ Detection engineering for an intrusion that moved through **four systems without
 
 ## Why this project
 
-On 19 November 2026, Mandiant and Google Threat Intelligence Group (GTIG) published how **ARMORY CASTLE** (formerly UNC5221, also tracked as Warp Panda) used **two zero-days** in one intrusion. Broadcom disclosed and patched the vCenter flaw the same day (VMSA-2026-0009, CVSS 9.8), and CISA added it to the KEV catalog on 20 November.
+On 19 November 2026, [Mandiant and Google Threat Intelligence Group (GTIG)](https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere) published how **ARMORY CASTLE** (formerly UNC5221, also tracked as Warp Panda) used **two zero-days** in one intrusion. Broadcom disclosed and patched the vCenter flaw the same day ([VMSA-2026-0009](https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/39495), CVSS 9.8), and CISA added it to the [KEV catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) on 20 November.
 
 vCenter is the control plane for every virtual machine in a company. Whoever controls it can read the disks of domain controllers. That is exactly what happened here: the actor ended up extracting **NTDS.dit** from a guest DC's virtual disk.
 
 The key lesson for a SOC: **vCenter, ESXi and appliances have no EDR.** If their logs are not in the SIEM, this attack is invisible.
 
+## Timeline
+
+| Date (2026) | Event |
+|---|---|
+| 29 Aug | ARMORY CASTLE starts exploiting BeyondTrust CVE-2026-102764 as a zero-day |
+| Early Sep | vCenter exploited with BONESAW (CVE-2026-123890), more than two months before a patch |
+| 8 Oct | BeyondTrust ships the BT26-05 patch |
+| 15 Oct | BeyondTrust advisory BT26-05 and Mandiant analysis published |
+| 16 Oct | CISA adds CVE-2026-102764 to KEV |
+| 19 Nov | Broadcom VMSA-2026-0009 and Mandiant/GTIG vSphere report published |
+| 20 Nov | CISA adds CVE-2026-123890 to KEV |
+
 ## The attack chain (as reported by Mandiant)
 
 | Stage | What happened |
 |---|---|
-| **1. Initial access** | Zero-day **CVE-2026-102764** in BeyondTrust Remote Support (fixed in BT26-05) |
+| **1. Initial access** | Zero-day **CVE-2026-102764** in BeyondTrust Remote Support (fixed in [BT26-05](https://www.beyondtrust.com/trust-center/security-advisories/bt26-05)) |
 | **2. Linux appliance** | JSP web shells (SLIMSAVAGE, CAGEMATCH), nmap of VMware ports, base64 → gdb → SUID on `/bin/env` for root, BEARBONES SSH backdoor, LAZYBONES with Slack C2 |
 | **3. vCenter** | **BONESAW** exploits **CVE-2026-123890** (vmdir auth bypass, TCP 2012): new SSO admin + machine account, theft of `data.mdb` and the STS SAML signing key, **Golden SAML** (SAWSNAKE). Local admin `sps-*@vsphere.local`. SSH turned on via VAMI, master key and PostgreSQL credentials stolen, SSH turned off |
 | **4. ESXi** | Logins as `vpxuser` and `root`, SSH key planted, `vmfs_browser.py` reads a Windows guest disk → **NTDS.dit, SYSTEM, SECURITY**. Data staged in a hidden `.a` folder and moved out with scp |
 
-**Patch status:** vCenter fixed in **9.1.1.0200, 9.0.2.0200, 8.0 U3m** and VCF **5.2.5**. Broadcom lists **no workaround**. No fixed build is listed for 7.0.
+**Patch status**
+
+- **vCenter:** fixed in **9.1.1.0200, 9.0.2.0200, 8.0 U3m** and VCF **5.2.5**. Broadcom lists **no workaround**, so patching is the only fix. vCenter **7.0** is past end of general support and has no fixed build listed: treat it as vulnerable and plan an upgrade.
+- **BeyondTrust Remote Support:** versions **≤ 26.2.3** are affected. Apply patch **BT26-05-RS**. Versions older than 24.3.1 must upgrade first.
 
 ---
 
@@ -38,6 +53,19 @@ The key lesson for a SOC: **vCenter, ESXi and appliances have no EDR.** If their
 | [`hunting/hunting-and-hardening.md`](hunting/hunting-and-hardening.md) | First-24h actions, hunting checklist per system, response order for Golden SAML, hardening table |
 | [`layers/attack-layer.json`](layers/attack-layer.json) | ATT&CK Navigator layer: 34 techniques, 18 covered by rules in this repo |
 | `vcenter-attack-chain.png` | Attack chain with the detection points per stage |
+
+## Quick start
+
+Validate the rules and convert them yourself with [sigma-cli](https://github.com/SigmaHQ/sigma-cli):
+
+```bash
+pip install sigma-cli
+sigma plugin install splunk
+sigma check detections/sigma/
+sigma convert -t splunk --without-pipeline detections/sigma/
+```
+
+`--without-pipeline` keeps the generic field names. Add a processing pipeline (or edit the output) to map them to your own sourcetypes and fields.
 
 ## Detections
 
@@ -61,7 +89,9 @@ The key lesson for a SOC: **vCenter, ESXi and appliances have no EDR.** If their
 
 ## ATT&CK mapping
 
-Mandiant's post lists **no ATT&CK IDs**. The mapping in this repo is my own, built from the reported behaviour and checked against ATT&CK v20.1. In the layer, **dark red** marks techniques observed *and* covered by a rule here, and **light** marks observed techniques that need hunting instead (see the checklist). The biggest gap is the one defenders also struggle with: **Golden SAML (T1606.002)**. Forged tokens look like normal logins, so the defence is to protect and rotate the STS signing key.
+Mandiant's post lists **no ATT&CK IDs**. The mapping in this repo is my own, built from the reported behaviour and checked against [ATT&CK v20.1](https://attack.mitre.org/). In the layer, **dark red** marks techniques observed *and* covered by a rule here, and **light** marks observed techniques that need hunting instead (see the checklist).
+
+**Biggest gap: Golden SAML (T1606.002).** Forged tokens look like normal logins, so no rule here catches their use. The defence is to protect the STS signing key, hunt for its theft, and rotate it after any suspected vCenter compromise (response order in [`hunting/hunting-and-hardening.md`](hunting/hunting-and-hardening.md)).
 
 Open the layer: [ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/) → *Open Existing Layer* → *Upload from local* → `layers/attack-layer.json`.
 
@@ -77,12 +107,23 @@ Open the layer: [ATT&CK Navigator](https://mitre-attack.github.io/attack-navigat
 
 ## Sources
 
-- Mandiant / GTIG, *ARMORY CASTLE exploits vSphere* (19 Nov 2026)
-- SecurityWeek, *Newly Patched VMware vCenter Flaw Exploited as Zero-Day by Chinese APT*
-- SecurityOnline, *vCenter zero-day CVE-2026-123890 exploited* (versions, VMSA-2026-0009, KEV)
-- Cybersecurity Dive, *Chinese espionage group exploits VMware vCenter zero-day*
-- Mandiant, *Defending vSphere from UNC3944* and *vSphere and BRICKSTORM Malware: A Defender's Guide*
-- MITRE ATT&CK Enterprise v20.1
+**Primary**
+- Mandiant / GTIG, [ARMORY CASTLE Exploits vSphere](https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere) (19 Nov 2026)
+- Mandiant / GTIG, [ARMORY CASTLE exploits BeyondTrust](https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-beyondtrust) (15 Oct 2026)
+- Broadcom, [VMSA-2026-0009](https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/39495) (19 Nov 2026)
+- BeyondTrust, [Security advisory BT26-05](https://www.beyondtrust.com/trust-center/security-advisories/bt26-05) and [blog post](https://www.beyondtrust.com/blog/entry/bt26-05) (15 Oct 2026)
+- CISA, [Known Exploited Vulnerabilities catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog)
+
+**Reporting**
+- SecurityWeek, [Newly Patched VMware vCenter Flaw Exploited as Zero-Day by Chinese APT](https://securityweek.com/newly-patched-vmware-vcenter-flaw-exploited-as-zero-day-by-chinese-apt)
+- SecurityOnline, [vCenter zero-day CVE-2026-123890 exploited](https://securityonline.info/vcenter-zero-day-cve-2026-123890-exploited/) (versions, VMSA-2026-0009, KEV)
+- Cybersecurity Dive, [Chinese espionage group exploits VMware vCenter zero-day](https://www.cybersecuritydive.com/news/chinese-espionage-zero-day-flaw-vmware-vcenter/875273/)
+- Rapid7, [CVE-2026-123890: Critical Authentication Bypass in VMware vCenter](https://www.rapid7.com/blog/post/etr-cve-2026-123890-critical-authentication-bypass-vmware-vcenter)
+
+**vSphere defence background**
+- Mandiant, [From Help Desk to Hypervisor: Defending Your VMware vSphere Estate from UNC3944](https://cloud.google.com/blog/topics/threat-intelligence/defending-vsphere-from-unc3944/)
+- Mandiant, [vSphere and BRICKSTORM Malware: A Defender's Guide](https://cloud.google.com/blog/topics/threat-intelligence/vsphere-brickstorm-defender-guide) and the [vCenter hardening tool](https://github.com/mandiant/vcsa-hardening-tool)
+- [MITRE ATT&CK Enterprise v20.1](https://attack.mitre.org/)
 
 ## License & attribution
 
